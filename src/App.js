@@ -13,15 +13,11 @@ import { SubstrateContextProvider, useSubstrateState } from './substrate-lib'
 import { DeveloperConsole } from './substrate-lib/components'
 
 import AccountSelector from './AccountSelector'
-import Balances from './Balances'
-import BlockNumber from './BlockNumber'
-import Events from './Events'
-import Interactor from './Interactor'
-import Metadata from './Metadata'
+import Login from './Login'
+import Signup from './Signup'
 import NodeInfo from './NodeInfo'
-import TemplateModule from './TemplateModule'
-import Transfer from './Transfer'
-import Upgrade from './Upgrade'
+import Metadata from './Metadata'
+
 
 function Main() {
   const { apiState, apiError, keyringState } = useSubstrateState()
@@ -59,33 +55,22 @@ function Main() {
 
   return (
     <div ref={contextRef}>
-      <Sticky context={contextRef}>
+       <Sticky context={contextRef}>
         <AccountSelector />
       </Sticky>
-      <Container>
+	    <Container>
         <Grid stackable columns="equal">
           <Grid.Row stretched>
             <NodeInfo />
             <Metadata />
-            <BlockNumber />
-            <BlockNumber finalized />
           </Grid.Row>
           <Grid.Row stretched>
-            <Balances />
-          </Grid.Row>
-          <Grid.Row>
-            <Transfer />
-            <Upgrade />
-          </Grid.Row>
-          <Grid.Row>
-            <Interactor />
-            <Events />
-          </Grid.Row>
-          <Grid.Row>
-            <TemplateModule />
+      <Login />
+      <Signup />
           </Grid.Row>
         </Grid>
       </Container>
+
       <DeveloperConsole />
     </div>
   )
