@@ -41,128 +41,81 @@ function Main(props) {
   const [eventFeed, setEventFeed] = useState([])
   const [logindata, setLogindata] = useState(null);
   const [signature, setSignature] = useState(null);
-  const { api } = useSubstrateState();
+//  const { accountPair } = props;
+    const { api } = useSubstrateState();
 
-  const { keyring } = useSubstrateState()
-
-    const getEmaildata = async () => {
-      try {
-
-  let record = await api.query.identity.studentidOf(email);
-
-  if(record.inspect().inner) {
-    let recordp = JSON.parse(record);
-    console.log("Email " + email + " registered with " + recordp.accountId);
-    console.log(JSON.stringify(recordp));
-
-  }else {
-    console.log("Email "+ email + "  not registered" );
-    process.exit();
-  }
-
- let recordp = JSON.parse(record);
-
-        setEmaildata(email);
-        setPublickey(recordp.accountId);
-
-      } catch (e) {
-        console.error(e);
-      }
-	    
-    }
-
-    const getPublickeydata = async () => {
-      try {
-
-  let record = await api.query.identity.emailId(publickey);
-
-  console.log(JSON.stringify(record));
-
-  if(record.toHuman() != null) {
-  console.log(record.toHuman() + " is already linked to " + idtolink);
-
-  email = record.toHuman();
-  }else {
-     return;
-  }
-
-
-  let record = await api.query.identity.studentidOf(email);
-
-  if(record.inspect().inner) {
-    let recordp = JSON.parse(record);
-    console.log("Email " + email + " registered with " + recordp.accountId);
-    console.log(JSON.stringify(recordp));
-
-  }else {
-    console.log("Email "+ email + "  not registered" );
-    process.exit();
-  }
-
- let recordp = JSON.parse(record);
-
-        setEmaildata(email);
-        setPublickey(recordp.accountId);
-
-      } catch (e) {
-        console.error(e);
-      }
-	    
-    }
-
-    const type2Login = async () => {
-
-      try {
-
-const record = await api.query.identity.studentidOf(email);
-
-  if(record.inspect().inner) {
-    let recordp = JSON.parse(record);
-    console.log("Email " + email + " registered with " + recordp.accountId);
-    console.log(JSON.stringify(recordp));
-
-  }else {
-    console.log("Email "+ email + "  not registered" );
-    process.exit();
-  }
-
-const recordp = JSON.parse(record);
-
-  if(alice.address == recordp.accountId) {
-    console.log("Valid mneomonic allow login");
-    process.exit();
-
-  }else {
-    console.log("Invalid mneomonic provided");
-    process.exit();
-  }
-
+	const { keyring } = useSubstrateState()
 
 /*
-// const accountPair = keyring.getPairs()[0]; 
-const accountPair = keyring.getPair('4oEhW3fUYtt283rNSQypJgVMoVxbxkEPHBWrAonCW7o5cFRq');
+  useEffect(() => {
+    const getSetup = async () => {
+  //async test () {
+  const provider = new WsProvider('wss://student.selendra.org');
 
-const message = stringToU8a('this is our message');
+  // Create the API and wait until ready
+  const api = await ApiPromise.create({ provider });
+        const data = await api.rpc.state.getMetadata();
+    };
+    getSetup();
+  }, [api.rpc.state]);
+
+
+  //}
+  const { api } = useSubstrate();
+  const [metadata, setMetadata] = useState({ data: null, version: null });
+*/
+
+  // useEffect(() => {
+    const getLogindata = async () => {
+      try {
+	 const challenge = '5GrgArandom'; //(Math.random() + 1).toString(36).substr(32);
+  console.log("challenge = "+challenge);
+
+  console.log("querying  " + challenge);
+
+  let accesscheck = await api.rpc.state.getMetadata(); //api.query.identity.tokens(challenge);
+  console.log(JSON.stringify(accesscheck));
+        setLogindata('test' );
+  //if(accesscheck.inspect().inner) {
+  //console.log(accesscheck.toHuman());
+//
+        //setLogindata({ accesscheck });
+  //}
+      } catch (e) {
+        console.error(e);
+      }
+	    
+    }
+//    getLogindata();
+
+    const doLogin1 = async () => {
+      try {
+/*
+	// const accountPair = keyring.getPairs()[0]; 
+	const accountPair = keyring.getPair('4oEhW3fUYtt283rNSQypJgVMoVxbxkEPHBWrAonCW7o5cFRq');
+
+	const message = stringToU8a('this is our message');
 const signature = accountPair.sign(message);
 const isValid = accountPair.verify(message, signature, accountPair.publicKey);
 
 console.log("DoLogin");
+// output the result
 console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
 */
-
 /*
-const payring = new Keyring({ type: 'sr25519' });
+ * Does not work, Keyring is not a constructor
+ * */
+      const payring = new Keyring({ type: 'sr25519' });
 
-let alice = payring.addFromUri(uriofid);
+     let alice = payring.addFromUri(uriofid);
 
-const message = stringToU8a('this is our message');
+	const message = stringToU8a('this is our message');
 const signature = alice.sign(message);
 const isValid = alice.verify(message, signature, alice.publicKey);
 
 console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
-*/
 
-/*
+	      /*
         const wrapped = 'test1';
         signer
           .signRaw({
@@ -173,7 +126,28 @@ console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
           .then(({ signature }) => setSignature(signature))
           .catch(console.error); 
 
+
+
 */
+	      /*
+	 const challenge = '5GrgArandom'; //(Math.random() + 1).toString(36).substr(32);
+  console.log("challenge = "+challenge);
+  const loginwithchallenge = api.tx.identity.loginWeb3Sel16(challenge);
+
+   await loginwithchallenge.signAndSend(accountPair);
+ // console.log('login with hash', hash.toHex());
+
+  console.log("querying  " + challenge);
+
+  let accesscheck = await api.query.identity.tokens(challenge);
+  console.log(JSON.stringify(accesscheck));
+	      */
+//        setLogindata({ accesscheck });
+  //if(accesscheck.inspect().inner) {
+  //console.log(accesscheck.toHuman());
+//
+        //setLogindata({ accesscheck });
+  //}
       } catch (e) {
         console.error(e);
       }
@@ -182,7 +156,7 @@ console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
 //  }, [api, accountPair]);
 
 
-    const type3Login = async () => {
+    const doLogin = async () => {
 
     try {
 // this call fires up the authorization popup
@@ -237,7 +211,7 @@ if (!!signRaw) {
 
 	  <Grid.Row >
             <Form>
-                <h3>Type-1 Email/password login</h3>
+                <h3>Email login</h3>
 		<Form.Field>
                 <label>Email address </label>
                 <Input fluid placeholder='Email ' />
@@ -271,15 +245,14 @@ if (!!signRaw) {
 
 	  <Grid.Row >
             <Form>
-                <h3>Type2 Web3 login</h3>
-                <p>Public-key and mneomonic login</p>
+                <h3>Web3 login</h3>
 		<Form.Field>
                 <label>Public key </label>
                 <Input fluid placeholder='publickey ' />
                 </Form.Field>
 		<Form.Field>
-  		<label>Enter mneomonic</label>
-  		<Input type='text' placeholder='mnemonic' />
+  		<label>Enter Password</label>
+  		<Input type='password' placeholder='Password' />
 		</Form.Field>
 		 <Button
         	label="Sign"
@@ -300,33 +273,6 @@ if (!!signRaw) {
 		{logindata}
 	  </Grid.Row >
 
-	  <Grid.Row >
-            <Form>
-                <h3>Type3 Web3 login</h3>
-                <p>Public-key and key in  external wallet login</p>
-		<Form.Field>
-                <label>Public key </label>
-                <Input fluid placeholder='publickey ' />
-                </Form.Field>
-
-		 <Button
-        	label="Sign and Login"
-		  floated="right"
-
-        	onClick={type3Login}
-      		/>
-		 <Button
-        	label="Get Status"
-		  floated="right"
-        	onClick={getLogindata}
-      		/>
-
-            </Form>
-	  </Grid.Row >
-	  <Grid.Row >
-		 <h3>Result  </h3>
-		{logindata}
-	  </Grid.Row >
           </Grid.Column>
         );
     }

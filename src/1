@@ -111,58 +111,30 @@ function Main(props) {
     }
 
     const type2Login = async () => {
-
       try {
-
-const record = await api.query.identity.studentidOf(email);
-
-  if(record.inspect().inner) {
-    let recordp = JSON.parse(record);
-    console.log("Email " + email + " registered with " + recordp.accountId);
-    console.log(JSON.stringify(recordp));
-
-  }else {
-    console.log("Email "+ email + "  not registered" );
-    process.exit();
-  }
-
-const recordp = JSON.parse(record);
-
-  if(alice.address == recordp.accountId) {
-    console.log("Valid mneomonic allow login");
-    process.exit();
-
-  }else {
-    console.log("Invalid mneomonic provided");
-    process.exit();
-  }
-
-
 /*
-// const accountPair = keyring.getPairs()[0]; 
-const accountPair = keyring.getPair('4oEhW3fUYtt283rNSQypJgVMoVxbxkEPHBWrAonCW7o5cFRq');
+	// const accountPair = keyring.getPairs()[0]; 
+	const accountPair = keyring.getPair('4oEhW3fUYtt283rNSQypJgVMoVxbxkEPHBWrAonCW7o5cFRq');
 
-const message = stringToU8a('this is our message');
+	const message = stringToU8a('this is our message');
 const signature = accountPair.sign(message);
 const isValid = accountPair.verify(message, signature, accountPair.publicKey);
 
 console.log("DoLogin");
+// output the result
 console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
 */
+      const payring = new Keyring({ type: 'sr25519' });
 
-/*
-const payring = new Keyring({ type: 'sr25519' });
+     let alice = payring.addFromUri(uriofid);
 
-let alice = payring.addFromUri(uriofid);
-
-const message = stringToU8a('this is our message');
+	const message = stringToU8a('this is our message');
 const signature = alice.sign(message);
 const isValid = alice.verify(message, signature, alice.publicKey);
 
 console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
-*/
 
-/*
+	      /*
         const wrapped = 'test1';
         signer
           .signRaw({
@@ -172,6 +144,8 @@ console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
           })
           .then(({ signature }) => setSignature(signature))
           .catch(console.error); 
+
+
 
 */
       } catch (e) {
