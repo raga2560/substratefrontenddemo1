@@ -14,9 +14,10 @@ import type { Signer } from '@polkadot/api/types';
 import { Button, Form, Input, Grid, Label, Icon, Dropdown } from 'semantic-ui-react'
 import { useSubstrateState } from './substrate-lib'
 
+import { randomAsU8a, signatureVerify } from   '@polkadot/util-crypto';
 
 const { ApiPromise, WsProvider } = require('@polkadot/api');
-const { randomAsU8a, randomAsNumber, randomAsHex } = require( '@polkadot/util-crypto');
+const {   randomAsNumber, randomAsHex } = require( '@polkadot/util-crypto');
 
 // The ID of web3 user we are registering
 const idtolink = '5GrgA3Pu4JGTgHEQsYHBrLwXi585gEZGVUWMNHg1rE7jhRjy';
@@ -47,8 +48,9 @@ function Main(props) {
   const [type3result, setType3result] = useState(null);
   const [mnemonic, setMnemonic] = useState(null);
   const [email, setEmail] = useState(null);
+  const [signmessage, setSignmessage] = useState(null);
   const [password, setPassword] = useState(null);
-  const [enteredaddress, setEnteredaddress] = useState(null);
+  const [pubkeyinextension, setPubkeyinextension] = useState(null);
   const [signature, setSignature] = useState(null);
   const { api } = useSubstrateState();
 
@@ -91,16 +93,42 @@ function Main(props) {
      return;
   }
 
-
 //  record = await api.query.identity.studentidOf(email);
-
-
       } catch (e) {
         console.error(e);
         setType2result("Error loading publickey");
       }
 	    
     }
+
+    const getAccount = async () => {
+      try {
+
+  let record = await api.query.identity.emailId(pubkeyinextension);
+
+  console.log(JSON.stringify(record));
+
+  if(record.toHuman() != null) {
+  console.log(record.toHuman() + " is already linked to " + idtolink);
+
+  setEmail(record.toHuman());
+     setEmaildata(email);
+  }else {
+        setType3result("No account for address");
+     return;
+  }
+
+
+//  record = await api.query.identity.studentidOf(email);
+
+
+      } catch (e) {
+        console.error(e);
+        setType3result("Error loading publickey");
+      }
+	    
+    }
+
     const type1Login = async () => {
 	    // Not implemented
     }
@@ -123,6 +151,9 @@ const record = await api.query.identity.studentidOf(email);
   if(!record) {
     console.log("Email "+ email + "  not registered" );
     setType2result("Login failed, system error ");
+    return;
+  }else if(JSON.parse(record).accountId != publickey) {
+    setType2result("Login failed, account mismatch, system error ");
     return;
   }
 
@@ -208,27 +239,43 @@ const account = allAccounts[0];
 
 // to be able to retrieve the signer interface from this account
 // we can use web3FromSource which will return an InjectedExtension type
-const injector = await web3FromSource(account.meta.source);
+const injector = await web3FromAddress(pubkeyinextension)
+//const injector = await web3FromSource(account.meta.source);
 
 
 // this injector object has a signer and a signRaw method
 // to be able to sign raw bytes
 const signRaw = injector?.signer?.signRaw;
 
+const messagetosign = 'message to sign '+ randomAsU8a(10) ;// (Math.random() + 1).toString(36).substr(7);
 if (!!signRaw) {
     // after making sure that signRaw is defined
     // we can use it to sign our message
     const { signature } = await signRaw({
-        address: account.address,
-        data: stringToHex('message to sign'),
+        address: pubkeyinextension,
+        data: stringToHex(messagetosign),
         type: 'bytes'
     });
-}
+	console.log(hexToString(signature));
+//    setSignature(hexToString(signature));
+//    setSignmessage(messagetosign);
 
-      } catch (e) {
-        console.error(e);
+   console.log("y="+messagetosign);
+   console.log("x="+signature);
+   console.log("z="+pubkeyinextension);
+  const verification = signatureVerify(stringToHex(messagetosign),signature, pubkeyinextension);
+
+    if (verification.crypto !== 'none') {
+        setType3result("Login valid ");
+      } else {
+        setType3result("Login failed ");
       }
-  }
+
+    }
+  } catch (e) {
+        console.error(e);
+   }
+}
 
 
 
@@ -295,24 +342,23 @@ if (!!signRaw) {
 	  <Grid.Row >
             <Form>
                 <h3>Type3 Web3 login</h3>
-                <p>Public-key and key in  external wallet login</p>
+                <p>Extension/external wallet login</p>
 		<Form.Field>
                 <label>Public key </label>
-                <Input fluid placeholder='publickey ' onChange={(_, { value }) => setPublickey(value)}
+                <Input fluid placeholder='publickey ' onChange={(_, { value }) => setPubkeyinextension(value)}
  />
                 </Form.Field>
                 <Form.Field>
+
+	 <Button label="Check account " floated="right" onClick={getAccount} />
+	 <Button label="Sign and Login" floated="right" onClick={type3Login} />
+                </Form.Field>
+                <Form.Field>
                 <label>Email: {email} </label>
+		Type 3 Result : {type3result}
                 </Form.Field>
 
-	 <Button label="Get publickey" floated="right" onClick={getPublickeydata} />
-	 <Button label="Sign and Login" floated="right" onClick={type3Login} />
-
             </Form>
-	  </Grid.Row >
-	  <Grid.Row >
-		 <h3>Type 3 Result  </h3>
-		{type3result}
 	  </Grid.Row >
           </Grid.Column>
         );
