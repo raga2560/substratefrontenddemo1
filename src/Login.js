@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { stringToHex, stringToU8a, u8aToHex } from '@polkadot/util';
+import { hexToString, stringToHex, stringToU8a, u8aToHex } from '@polkadot/util';
 
 import { Keyring } from  '@polkadot/keyring';
 import { web3Accounts, web3Enable, web3FromAddress,
@@ -40,6 +40,15 @@ function Main(props) {
   const [signer, setSigner] = useState({ isUsable: true, signer: null });
   const [eventFeed, setEventFeed] = useState([])
   const [logindata, setLogindata] = useState(null);
+  const [emaildata, setEmaildata] = useState(null);
+  const [publickey, setPublickey] = useState(null);
+  const [type1result, setType1result] = useState(null);
+  const [type2result, setType2result] = useState(null);
+  const [type3result, setType3result] = useState(null);
+  const [mnemonic, setMnemonic] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [password, setPassword] = useState(null);
+  const [enteredaddress, setEnteredaddress] = useState(null);
   const [signature, setSignature] = useState(null);
   const { api } = useSubstrateState();
 
@@ -48,25 +57,20 @@ function Main(props) {
     const getEmaildata = async () => {
       try {
 
-  let record = await api.query.identity.studentidOf(email);
+	     console.log(email);
+  const record = await api.query.identity.studentidOf(email);
 
-  if(record.inspect().inner) {
-    let recordp = JSON.parse(record);
+  const  recordp = JSON.parse(record);
     console.log("Email " + email + " registered with " + recordp.accountId);
     console.log(JSON.stringify(recordp));
 
-  }else {
-    console.log("Email "+ email + "  not registered" );
-    process.exit();
-  }
-
- let recordp = JSON.parse(record);
 
         setEmaildata(email);
         setPublickey(recordp.accountId);
 
       } catch (e) {
         console.error(e);
+        setType2result("Error loading email data");
       }
 	    
     }
@@ -81,61 +85,64 @@ function Main(props) {
   if(record.toHuman() != null) {
   console.log(record.toHuman() + " is already linked to " + idtolink);
 
-  email = record.toHuman();
+  setEmail(record.toHuman());
+     setEmaildata(email);
   }else {
      return;
   }
 
 
-  let record = await api.query.identity.studentidOf(email);
+//  record = await api.query.identity.studentidOf(email);
 
-  if(record.inspect().inner) {
-    let recordp = JSON.parse(record);
-    console.log("Email " + email + " registered with " + recordp.accountId);
-    console.log(JSON.stringify(recordp));
-
-  }else {
-    console.log("Email "+ email + "  not registered" );
-    process.exit();
-  }
-
- let recordp = JSON.parse(record);
-
-        setEmaildata(email);
-        setPublickey(recordp.accountId);
 
       } catch (e) {
         console.error(e);
+        setType2result("Error loading publickey");
       }
 	    
+    }
+    const type1Login = async () => {
+	    // Not implemented
     }
 
     const type2Login = async () => {
 
       try {
 
+  if(!email) {
+      setType2result("Account not loaded");
+      return;
+  }
+  if(!mnemonic) {
+      setType2result("Enter mnemonic ");
+      return;
+  }
+
 const record = await api.query.identity.studentidOf(email);
 
-  if(record.inspect().inner) {
-    let recordp = JSON.parse(record);
-    console.log("Email " + email + " registered with " + recordp.accountId);
-    console.log(JSON.stringify(recordp));
-
-  }else {
+  if(!record) {
     console.log("Email "+ email + "  not registered" );
-    process.exit();
+    setType2result("Login failed, system error ");
+    return;
   }
 
-const recordp = JSON.parse(record);
+const payring = new Keyring({ type: 'sr25519' });
+console.log(mnemonic);
+const alice = payring.addFromUri(mnemonic.trim());
 
-  if(alice.address == recordp.accountId) {
-    console.log("Valid mneomonic allow login");
-    process.exit();
+console.log(alice.address );
+console.log(publickey);
 
-  }else {
+if( alice.address != publickey.trim()) {
     console.log("Invalid mneomonic provided");
-    process.exit();
-  }
+    setType2result("Login failed  ");
+    return;
+}else {
+    console.log("Valid mneomonic allow login");
+    setType2result("Login valid ");
+}
+
+
 
 
 /*
@@ -152,7 +159,6 @@ console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
 
 /*
 const payring = new Keyring({ type: 'sr25519' });
-
 let alice = payring.addFromUri(uriofid);
 
 const message = stringToU8a('this is our message');
@@ -178,8 +184,6 @@ console.log(`${u8aToHex(signature)} is ${isValid ? 'valid' : 'invalid'}`);
         console.error(e);
       }
     }
-    // doLogin();
-//  }, [api, accountPair]);
 
 
     const type3Login = async () => {
@@ -238,33 +242,26 @@ if (!!signRaw) {
 	  <Grid.Row >
             <Form>
                 <h3>Type-1 Email/password login</h3>
+                <p>Not implemented </p>
 		<Form.Field>
                 <label>Email address </label>
-                <Input fluid placeholder='Email ' />
+                <Input fluid placeholder='Email ' onChange={(_, { value }) => setEmail(value)}
+/>
                 </Form.Field>
 		<Form.Field>
   		<label>Enter Password</label>
-  		<Input type='password' placeholder='Password' />
+  		<Input type='password' placeholder='Password' onChange={(_, { value }) => setPassword(value)}
+ />
 		</Form.Field>
-		 <Button
-        	label="Submit"
-		  floated="right"
-        	onClick={_ => doLogin()}
-      		/>
-		 <Button
-        	label="Get Status"
-		  floated="right"
-        	onClick={_ => getLogindata()}
-      		/>
+		<Form.Field>
+		 Type 1 Result:  {type1result}
+		</Form.Field>
+		<Form.Field>
+    <Button label="Load email data" floated="right" onClick={_ => getEmaildata()} />
+    <Button label="Submit" floated="right" onClick={_ => type1Login()} />
+		</Form.Field>
 
             </Form>
-	  </Grid.Row >
-	  <Grid.Row >
-		 <h3>Result  </h3>
-		{logindata}
-                 <pre>
-                  <code>{JSON.stringify(logindata, null, 2)}</code>
-                </pre>
 
 	  </Grid.Row >
 
@@ -275,29 +272,24 @@ if (!!signRaw) {
                 <p>Public-key and mneomonic login</p>
 		<Form.Field>
                 <label>Public key </label>
-                <Input fluid placeholder='publickey ' />
+                <Input fluid placeholder='publickey ' onChange={(_, { value }) => setPublickey(value)}
+/>
+                </Form.Field>
+                <Form.Field>
+                <label>Email: {email} </label>
                 </Form.Field>
 		<Form.Field>
   		<label>Enter mneomonic</label>
-  		<Input type='text' placeholder='mnemonic' />
+  		<Input type='text' placeholder='mnemonic' onChange={(_, { value }) => setMnemonic(value)}
+/>
 		</Form.Field>
-		 <Button
-        	label="Sign"
-		  floated="right"
-
-        	onClick={doLogin}
-      		/>
-		 <Button
-        	label="Get Status"
-		  floated="right"
-        	onClick={getLogindata}
-      		/>
+		<Form.Field>
+		 Type 2 Result  : {type2result}
+		</Form.Field>
+	 <Button label="Get publickey" floated="right" onClick={getPublickeydata} />
+	 <Button label="Sign and login" floated="right" onClick={type2Login} />
 
             </Form>
-	  </Grid.Row >
-	  <Grid.Row >
-		 <h3>Result  </h3>
-		{logindata}
 	  </Grid.Row >
 
 	  <Grid.Row >
@@ -306,26 +298,21 @@ if (!!signRaw) {
                 <p>Public-key and key in  external wallet login</p>
 		<Form.Field>
                 <label>Public key </label>
-                <Input fluid placeholder='publickey ' />
+                <Input fluid placeholder='publickey ' onChange={(_, { value }) => setPublickey(value)}
+ />
+                </Form.Field>
+                <Form.Field>
+                <label>Email: {email} </label>
                 </Form.Field>
 
-		 <Button
-        	label="Sign and Login"
-		  floated="right"
-
-        	onClick={type3Login}
-      		/>
-		 <Button
-        	label="Get Status"
-		  floated="right"
-        	onClick={getLogindata}
-      		/>
+	 <Button label="Get publickey" floated="right" onClick={getPublickeydata} />
+	 <Button label="Sign and Login" floated="right" onClick={type3Login} />
 
             </Form>
 	  </Grid.Row >
 	  <Grid.Row >
-		 <h3>Result  </h3>
-		{logindata}
+		 <h3>Type 3 Result  </h3>
+		{type3result}
 	  </Grid.Row >
           </Grid.Column>
         );
